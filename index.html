@@ -4,156 +4,145 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Menezes Barbearia</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Poppins',sans-serif;
-}
-
 body{
-background:#0f0f0f;
-color:#fff;
+    margin:0;
+    font-family:'Poppins', sans-serif;
+    background:#0d0d0d;
+    color:white;
 }
 
-header{
-background:linear-gradient(135deg,#000,#1a1a1a);
-padding:60px 20px;
-text-align:center;
-border-bottom:3px solid #d4af37;
+.hero{
+    height:100vh;
+    background:linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
+    url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1500&q=80');
+    background-size:cover;
+    background-position:center;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:20px;
 }
 
-header h1{
-font-size:40px;
-color:#d4af37;
-letter-spacing:2px;
+.hero h1{
+    font-family:'Playfair Display', serif;
+    font-size:48px;
+    color:#d4af37;
+    margin-bottom:10px;
+    letter-spacing:2px;
 }
 
-header p{
-margin-top:10px;
-color:#ccc;
+.hero h2{
+    font-size:26px;
+    font-weight:300;
+    margin-bottom:30px;
 }
 
-.container{
-max-width:1100px;
-margin:auto;
-padding:40px 20px;
+.btn{
+    background:#d4af37;
+    color:black;
+    padding:15px 35px;
+    font-weight:600;
+    border:none;
+    border-radius:40px;
+    font-size:16px;
+    text-decoration:none;
+    transition:0.3s;
 }
 
-.section-title{
-text-align:center;
-margin-bottom:40px;
-font-size:28px;
-color:#d4af37;
+.btn:hover{
+    background:white;
+    transform:scale(1.05);
 }
 
-.services{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
+.section{
+    padding:60px 20px;
+    text-align:center;
+}
+
+.section h3{
+    font-family:'Playfair Display', serif;
+    font-size:32px;
+    color:#d4af37;
+    margin-bottom:40px;
+}
+
+.cards{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:20px;
 }
 
 .card{
-background:#1a1a1a;
-padding:25px;
-border-radius:15px;
-text-align:center;
-border:1px solid #333;
-transition:0.3s;
+    background:#1a1a1a;
+    border:1px solid #d4af37;
+    padding:25px;
+    width:250px;
+    border-radius:15px;
+    transition:0.3s;
 }
 
 .card:hover{
-transform:translateY(-5px);
-border:1px solid #d4af37;
+    transform:translateY(-5px);
 }
 
-.price{
-margin-top:10px;
-font-size:20px;
-color:#d4af37;
-font-weight:600;
+.card h4{
+    color:#d4af37;
+    font-size:20px;
 }
 
 .info{
-margin-top:40px;
-text-align:center;
-color:#ccc;
-line-height:28px;
+    background:#111;
+    padding:40px 20px;
+    text-align:center;
+    border-top:1px solid #d4af37;
 }
 
-button{
-margin-top:20px;
-padding:15px 30px;
-border:none;
-border-radius:50px;
-background:#d4af37;
-color:#000;
-font-weight:600;
-cursor:pointer;
-transition:0.3s;
-}
-
-button:hover{
-background:#b9962e;
-}
-
-footer{
-margin-top:60px;
-padding:30px;
-text-align:center;
-background:#000;
-color:#777;
-border-top:1px solid #222;
+.info p{
+    margin:8px 0;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-<h1>Menezes Barbearia 💈</h1>
-<p>Estilo • Elegância • Precisão</p>
-</header>
-
-<div class="container">
-
-<h2 class="section-title">Nossos Serviços</h2>
-
-<div class="services">
-<div class="card">
-<h3>Corte</h3>
-<div class="price">R$ 30</div>
+<div class="hero">
+    <h1>MENEZES BARBEARIA</h1>
+    <h2>Corte de respeito. Estilo que impõe presença.</h2>
+    <a class="btn" href="https://wa.me/5511918644578" target="_blank">
+        AGENDAR PELO WHATSAPP
+    </a>
 </div>
 
-<div class="card">
-<h3>Barba</h3>
-<div class="price">R$ 10</div>
-</div>
-
-<div class="card">
-<h3>Sobrancelha</h3>
-<div class="price">R$ 5</div>
-</div>
+<div class="section">
+    <h3>Nossos Serviços</h3>
+    <div class="cards">
+        <div class="card">
+            <h4>Corte</h4>
+            <p>R$ 30,00</p>
+        </div>
+        <div class="card">
+            <h4>Barba</h4>
+            <p>R$ 10,00</p>
+        </div>
+        <div class="card">
+            <h4>Sobrancelha</h4>
+            <p>R$ 5,00</p>
+        </div>
+    </div>
 </div>
 
 <div class="info">
-<p><strong>📍 Endereço:</strong> Rua Monteiro Lobato 289</p>
-<p><strong>⏰ Horário:</strong> 08:00 às 15:30</p>
-<p><strong>📞 WhatsApp:</strong> (11) 91864-4578</p>
-
-<a href="https://wa.me/5511918644578" target="_blank">
-<button>Agendar pelo WhatsApp</button>
-</a>
+    <p><strong>Endereço:</strong> Rua Monteiro Lobato 289</p>
+    <p><strong>Horário:</strong> 08:00 às 15:30</p>
+    <p><strong>Contato:</strong> (11) 91864-4578</p>
 </div>
-
-</div>
-
-<footer>
-© 2026 Menezes Barbearia - Todos os direitos reservados
-</footer>
 
 </body>
 </html>
