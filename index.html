@@ -2,16 +2,16 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Menezes Barbearia</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 body{
 background:#0d0d0d;
-font-family:Arial;
+font-family:Arial, sans-serif;
 color:white;
 margin:0;
-padding:0;
 text-align:center;
 }
 
@@ -30,7 +30,7 @@ padding:20px;
 border:1px solid #d4af37;
 border-radius:15px;
 padding:15px;
-margin-bottom:15px;
+margin-bottom:12px;
 cursor:pointer;
 transition:0.3s;
 }
@@ -59,7 +59,7 @@ cursor:pointer;
 
 input{
 width:100%;
-padding:10px;
+padding:12px;
 margin:10px 0;
 border-radius:8px;
 border:none;
@@ -137,31 +137,39 @@ div.appendChild(el);
 });
 }
 
+// 🔥 SEGUNDA A SÁBADO FIXO NA ORDEM
 function gerarDias(){
-let div=document.getElementById("dias");
-let hoje=new Date();
-let count=0;
+let div = document.getElementById("dias");
+div.innerHTML = "";
 
-while(count<6){
-let data=new Date();
-data.setDate(hoje.getDate()+count);
+let hoje = new Date();
+let diaAtual = hoje.getDay();
+let diasAteSegunda = (diaAtual === 0 ? 1 : 8 - diaAtual);
+let primeiraSegunda = new Date();
+primeiraSegunda.setDate(hoje.getDate() + diasAteSegunda - 7);
 
-if(data.getDay()!=0){
-let diaSemana=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][data.getDay()];
-let format=`${data.getDate()}/${data.getMonth()+1}`;
+const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-let el=document.createElement("div");
-el.className="card";
-el.innerHTML=`${format}<br><span class="small">${diaSemana}</span>`;
-el.onclick=()=>{
+for(let i = 0; i < 6; i++){
+let data = new Date(primeiraSegunda);
+data.setDate(primeiraSegunda.getDate() + i);
+
+let dia = String(data.getDate()).padStart(2,'0');
+let mes = String(data.getMonth()+1).padStart(2,'0');
+let format = `${dia}/${mes}`;
+
+let el = document.createElement("div");
+el.className = "card";
+el.innerHTML = `${format}<br><span class="small">${diasSemana[i]}</span>`;
+
+el.onclick = () => {
 document.querySelectorAll("#dias .card").forEach(c=>c.classList.remove("selected"));
 el.classList.add("selected");
-diaSelecionado=format;
+diaSelecionado = format;
 gerarHorarios();
 };
+
 div.appendChild(el);
-}
-count++;
 }
 }
 
@@ -170,14 +178,18 @@ let div=document.getElementById("horarios");
 div.innerHTML="";
 horarioSelecionado=null;
 
-let {data}=await supabaseClient.from("agendamentos").select("horario").eq("dia",diaSelecionado);
+let {data}=await supabaseClient
+.from("agendamentos")
+.select("horario")
+.eq("dia",diaSelecionado);
 
 let ocupados=data?data.map(d=>d.horario):[];
 
 for(let h=8;h<=15;h++){
 for(let m of ["00","30"]){
-let horario=`${h}:${m}`;
-if(h==15 && m=="30"){}
+if(h==15 && m=="30") continue;
+let horario=`${String(h).padStart(2,"0")}:${m}`;
+
 if(!ocupados.includes(horario)){
 let el=document.createElement("div");
 el.className="card";
@@ -197,8 +209,9 @@ async function agendar(){
 let nome=document.getElementById("nome").value.trim();
 let telefone=document.getElementById("telefone").value.trim();
 
-if(!nome || nome.split(" ").length<2){
-alert("Digite nome e sobrenome.");
+// 🔥 validação forte nome + sobrenome
+if(!nome || nome.split(" ").filter(p=>p.length>1).length<2){
+alert("Digite nome e sobrenome corretamente.");
 return;
 }
 
@@ -215,7 +228,7 @@ dia:diaSelecionado,
 horario:horarioSelecionado
 }]);
 
-alert("Agendamento realizado!");
+alert("Agendamento realizado com sucesso!");
 location.reload();
 }
 
