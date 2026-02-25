@@ -7,6 +7,8 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 body{
     margin:0;
@@ -16,7 +18,7 @@ body{
 }
 
 .hero{
-    height:100vh;
+    height:90vh;
     background:linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
     url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1500&q=80');
     background-size:cover;
@@ -33,31 +35,10 @@ body{
     font-family:'Playfair Display', serif;
     font-size:48px;
     color:#d4af37;
-    margin-bottom:10px;
-    letter-spacing:2px;
 }
 
 .hero h2{
-    font-size:26px;
     font-weight:300;
-    margin-bottom:30px;
-}
-
-.btn{
-    background:#d4af37;
-    color:black;
-    padding:15px 35px;
-    font-weight:600;
-    border:none;
-    border-radius:40px;
-    font-size:16px;
-    text-decoration:none;
-    transition:0.3s;
-}
-
-.btn:hover{
-    background:white;
-    transform:scale(1.05);
 }
 
 .section{
@@ -69,61 +50,41 @@ body{
     font-family:'Playfair Display', serif;
     font-size:32px;
     color:#d4af37;
-    margin-bottom:40px;
 }
 
-.cards{
+form{
+    max-width:400px;
+    margin:30px auto;
     display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:20px;
+    flex-direction:column;
+    gap:15px;
 }
 
-.card{
-    background:#1a1a1a;
+input, select{
+    padding:12px;
+    border-radius:8px;
     border:1px solid #d4af37;
-    padding:25px;
-    width:250px;
-    border-radius:15px;
+    background:#1a1a1a;
+    color:white;
+}
+
+button{
+    background:#d4af37;
+    border:none;
+    padding:14px;
+    border-radius:30px;
+    font-weight:600;
+    cursor:pointer;
     transition:0.3s;
 }
 
-.card:hover{
-    transform:translateY(-5px);
+button:hover{
+    background:white;
 }
 
-.card h4{
-    color:#d4af37;
-    font-size:20px;
-}
-
-.info{
-    background:#111;
-    padding:40px 20px;
-    text-align:center;
-    border-top:1px solid #d4af37;
-}
-
-.info p{
-    margin:8px 0;
-}
-
-/* CTA FINAL */
-
-.final-cta{
-    background:#0d0d0d;
-    padding:80px 20px;
-    border-top:1px solid #d4af37;
-    text-align:center;
-}
-
-.cta-title{
-    font-family:'Playfair Display', serif;
-    font-size:36px;
-    font-weight:900;
-    color:#d4af37;
-    margin-bottom:30px;
-    letter-spacing:1px;
+.msg{
+    margin-top:15px;
+    font-weight:600;
 }
 </style>
 </head>
@@ -136,35 +97,72 @@ body{
 </div>
 
 <div class="section">
-    <h3>Nossos Serviços</h3>
-    <div class="cards">
-        <div class="card">
-            <h4>Corte</h4>
-            <p>R$ 30,00</p>
-        </div>
-        <div class="card">
-            <h4>Barba</h4>
-            <p>R$ 10,00</p>
-        </div>
-        <div class="card">
-            <h4>Sobrancelha</h4>
-            <p>R$ 5,00</p>
-        </div>
-    </div>
+    <h3>Agende seu horário</h3>
+
+    <form id="form">
+        <input type="text" id="nome" placeholder="Seu nome" required>
+        <input type="text" id="telefone" placeholder="Seu telefone" required>
+
+        <select id="servico" required>
+            <option value="">Escolha o serviço</option>
+            <option>Corte</option>
+            <option>Barba</option>
+            <option>Sobrancelha</option>
+        </select>
+
+        <input type="date" id="data" required>
+        <input type="time" id="horario" min="08:00" max="15:30" required>
+
+        <button type="submit">CONFIRMAR AGENDAMENTO</button>
+        <div class="msg" id="msg"></div>
+    </form>
 </div>
 
-<div class="info">
-    <p><strong>Endereço:</strong> Rua Monteiro Lobato 289</p>
-    <p><strong>Horário:</strong> 08:00 às 15:30</p>
-    <p><strong>Contato:</strong> (11) 91864-4578</p>
-</div>
+<script>
+const supabase = supabase.createClient(
+  "https://vmtizubcbzcscvrjnbkc.supabase.co",
+  "sb_publishable_yTBSdMmjv1qIH8V9FViobw_DBIwtm_D"
+);
 
-<div class="final-cta">
-    <h3 class="cta-title">Pronto para mudar o visual?</h3>
-    <a class="btn" href="https://wa.me/5511918644578" target="_blank">
-        AGENDAR PELO WHATSAPP
-    </a>
-</div>
+const form = document.getElementById("form");
+const msg = document.getElementById("msg");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const nome = document.getElementById("nome").value;
+    const telefone = document.getElementById("telefone").value;
+    const servico = document.getElementById("servico").value;
+    const data = document.getElementById("data").value;
+    const horario = document.getElementById("horario").value;
+
+    // Verifica se horário já existe
+    const { data: existente } = await supabase
+        .from("agendamentos")
+        .select("*")
+        .eq("data", data)
+        .eq("horario", horario);
+
+    if (existente.length > 0) {
+        msg.style.color = "red";
+        msg.innerText = "⚠️ Esse horário já está reservado.";
+        return;
+    }
+
+    const { error } = await supabase
+        .from("agendamentos")
+        .insert([{ nome, telefone, servico, data, horario }]);
+
+    if (error) {
+        msg.style.color = "red";
+        msg.innerText = "Erro ao agendar.";
+    } else {
+        msg.style.color = "#d4af37";
+        msg.innerText = "✅ Horário agendado com sucesso!";
+        form.reset();
+    }
+});
+</script>
 
 </body>
 </html>
