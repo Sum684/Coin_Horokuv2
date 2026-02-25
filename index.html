@@ -6,7 +6,6 @@
 <title>Menezes Barbearia</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -18,7 +17,7 @@ body{
 }
 
 .hero{
-    height:70vh;
+    height:65vh;
     background:linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
     url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1500&q=80');
     background-size:cover;
@@ -33,41 +32,58 @@ body{
     font-family:'Playfair Display', serif;
     font-size:42px;
     color:#d4af37;
+    letter-spacing:2px;
 }
 
 .section{
-    padding:60px 20px;
+    padding:70px 20px;
     text-align:center;
 }
 
 .section h3{
     font-family:'Playfair Display', serif;
     color:#d4af37;
+    font-size:30px;
+}
+
+.card-agendamento{
+    max-width:450px;
+    margin:40px auto;
+    background:#141414;
+    padding:35px;
+    border-radius:18px;
+    border:1px solid #d4af37;
+    box-shadow:0 0 30px rgba(212,175,55,0.1);
 }
 
 form{
-    max-width:400px;
-    margin:30px auto;
     display:flex;
     flex-direction:column;
-    gap:15px;
+    gap:18px;
 }
 
 input, select{
-    padding:12px;
-    border-radius:8px;
+    padding:14px;
+    border-radius:10px;
     border:1px solid #d4af37;
-    background:#1a1a1a;
+    background:#1c1c1c;
     color:white;
+    font-size:14px;
+}
+
+input:focus, select:focus{
+    outline:none;
+    box-shadow:0 0 8px #d4af37;
 }
 
 button{
     background:#d4af37;
     border:none;
-    padding:14px;
+    padding:15px;
     border-radius:30px;
     font-weight:600;
     cursor:pointer;
+    transition:0.3s;
 }
 
 button:hover{
@@ -75,7 +91,7 @@ button:hover{
 }
 
 .msg{
-    margin-top:15px;
+    margin-top:10px;
     font-weight:600;
 }
 </style>
@@ -90,29 +106,31 @@ button:hover{
 <div class="section">
     <h3>Agende seu horário</h3>
 
-    <form id="form">
-        <input type="text" id="nome" placeholder="Nome e Sobrenome" required>
-        <input type="tel" id="telefone" placeholder="Telefone" required>
+    <div class="card-agendamento">
+        <form id="form">
+            <input type="text" id="nome" placeholder="Nome e Sobrenome" required>
+            <input type="tel" id="telefone" placeholder="Telefone" required>
 
-        <select id="servico" required>
-            <option value="">Escolha o serviço</option>
-            <option>Corte</option>
-            <option>Barba</option>
-            <option>Sobrancelha</option>
-            <option>Corte + Barba + Sobrancelha</option>
-        </select>
+            <select id="servico" required>
+                <option value="">Escolha o serviço</option>
+                <option>Corte — R$30</option>
+                <option>Barba — R$10</option>
+                <option>Sobrancelha — R$5</option>
+                <option>Corte + Barba + Sobrancelha — R$45</option>
+            </select>
 
-        <select id="data" required>
-            <option value="">Selecione o dia</option>
-        </select>
+            <select id="data" required>
+                <option value="">Selecione o dia</option>
+            </select>
 
-        <select id="horario" required>
-            <option value="">Selecione o horário</option>
-        </select>
+            <select id="horario" required>
+                <option value="">Selecione o horário</option>
+            </select>
 
-        <button type="submit">CONFIRMAR AGENDAMENTO</button>
-        <div class="msg" id="msg"></div>
-    </form>
+            <button type="submit">CONFIRMAR AGENDAMENTO</button>
+            <div class="msg" id="msg"></div>
+        </form>
+    </div>
 </div>
 
 <script>
@@ -121,12 +139,13 @@ const supabaseClient = supabase.createClient(
   "sb_publishable_yTBSdMmjv1qIH8V9FViobw_DBIwtm_D"
 );
 
+const diasSemana = ["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
+
 const dataSelect = document.getElementById("data");
 const horarioSelect = document.getElementById("horario");
 const form = document.getElementById("form");
 const msg = document.getElementById("msg");
 
-// Gerar próximos 6 dias úteis
 function gerarDias() {
     const hoje = new Date();
     dataSelect.innerHTML = '<option value="">Selecione o dia</option>';
@@ -141,7 +160,7 @@ function gerarDias() {
             const iso = data.toISOString().split("T")[0];
             const option = document.createElement("option");
             option.value = iso;
-            option.textContent = data.toLocaleDateString("pt-BR");
+            option.textContent = `${diasSemana[data.getDay()]} — ${data.toLocaleDateString("pt-BR")}`;
             dataSelect.appendChild(option);
             adicionados++;
         }
@@ -149,7 +168,6 @@ function gerarDias() {
     }
 }
 
-// Gerar horários 30 em 30
 function gerarHorarios() {
     let horarios = [];
     for (let h = 8; h <= 15; h++) {
@@ -162,63 +180,10 @@ function gerarHorarios() {
 dataSelect.addEventListener("change", async () => {
     horarioSelect.innerHTML = '<option value="">Carregando...</option>';
 
-    const { data: agendados, error } = await supabaseClient
+    const { data: agendados } = await supabaseClient
         .from("agendamentos")
         .select("horario")
         .eq("data", dataSelect.value);
 
-    if (error) {
-        horarioSelect.innerHTML = '<option value="">Erro ao carregar</option>';
-        return;
-    }
-
-    const ocupados = agendados.map(a => a.horario.slice(0,5));
-    const todos = gerarHorarios();
-
-    horarioSelect.innerHTML = '<option value="">Selecione o horário</option>';
-
-    todos.forEach(h => {
-        if (!ocupados.includes(h)) {
-            const option = document.createElement("option");
-            option.value = h;
-            option.textContent = h;
-            horarioSelect.appendChild(option);
-        }
-    });
-});
-
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const nome = document.getElementById("nome").value.trim();
-    const telefone = document.getElementById("telefone").value.trim();
-    const servico = document.getElementById("servico").value;
-    const data = dataSelect.value;
-    const horario = horarioSelect.value;
-
-    if (nome.split(" ").length < 2) {
-        msg.style.color = "red";
-        msg.innerText = "Digite nome e sobrenome.";
-        return;
-    }
-
-    const { error } = await supabaseClient
-        .from("agendamentos")
-        .insert([{ nome, telefone, servico, data, horario }]);
-
-    if (error) {
-        msg.style.color = "red";
-        msg.innerText = "Erro ao agendar.";
-    } else {
-        msg.style.color = "#d4af37";
-        msg.innerText = "Agendamento confirmado!";
-        form.reset();
-        horarioSelect.innerHTML = '<option value="">Selecione o horário</option>';
-    }
-});
-
-gerarDias();
-</script>
-
-</body>
-</html>
+    const ocupados = agendados ? agendados.map(a => a.horario.slice(0,5)) : [];
+    const todos = gerarHor
