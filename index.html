@@ -6,7 +6,6 @@
 <title>Menezes Barbearia</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -16,7 +15,6 @@ body{
     background:#0d0d0d;
     color:white;
 }
-
 .hero{
     height:90vh;
     background:linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
@@ -28,30 +26,20 @@ body{
     justify-content:center;
     align-items:center;
     text-align:center;
-    padding:20px;
 }
-
 .hero h1{
     font-family:'Playfair Display', serif;
     font-size:48px;
     color:#d4af37;
 }
-
-.hero h2{
-    font-weight:300;
-}
-
 .section{
     padding:60px 20px;
     text-align:center;
 }
-
 .section h3{
     font-family:'Playfair Display', serif;
-    font-size:32px;
     color:#d4af37;
 }
-
 form{
     max-width:400px;
     margin:30px auto;
@@ -59,7 +47,6 @@ form{
     flex-direction:column;
     gap:15px;
 }
-
 input, select{
     padding:12px;
     border-radius:8px;
@@ -67,7 +54,6 @@ input, select{
     background:#1a1a1a;
     color:white;
 }
-
 button{
     background:#d4af37;
     border:none;
@@ -75,13 +61,10 @@ button{
     border-radius:30px;
     font-weight:600;
     cursor:pointer;
-    transition:0.3s;
 }
-
 button:hover{
     background:white;
 }
-
 .msg{
     margin-top:15px;
     font-weight:600;
@@ -93,25 +76,27 @@ button:hover{
 
 <div class="hero">
     <h1>MENEZES BARBEARIA</h1>
-    <h2>Corte de respeito. Estilo que impõe presença.</h2>
 </div>
 
 <div class="section">
     <h3>Agende seu horário</h3>
 
     <form id="form">
-        <input type="text" id="nome" placeholder="Seu nome" required>
-        <input type="text" id="telefone" placeholder="Seu telefone" required>
+        <input type="text" id="nome" placeholder="Nome e Sobrenome" required>
+        <input type="tel" id="telefone" placeholder="Telefone" required>
 
         <select id="servico" required>
             <option value="">Escolha o serviço</option>
             <option>Corte</option>
             <option>Barba</option>
             <option>Sobrancelha</option>
+            <option>Corte + Barba + Sobrancelha</option>
         </select>
 
         <input type="date" id="data" required>
-        <input type="time" id="horario" min="08:00" max="15:30" required>
+        <select id="horario" required>
+            <option value="">Selecione um horário</option>
+        </select>
 
         <button type="submit">CONFIRMAR AGENDAMENTO</button>
         <div class="msg" id="msg"></div>
@@ -125,27 +110,61 @@ const supabase = supabase.createClient(
 );
 
 const form = document.getElementById("form");
+const horarioSelect = document.getElementById("horario");
+const dataInput = document.getElementById("data");
 const msg = document.getElementById("msg");
+
+function gerarHorarios() {
+    let horarios = [];
+    for (let h = 8; h <= 15; h++) {
+        horarios.push(`${String(h).padStart(2,'0')}:00`);
+        if (h !== 15) horarios.push(`${String(h).padStart(2,'0')}:30`);
+    }
+    return horarios;
+}
+
+dataInput.addEventListener("change", async () => {
+    const data = new Date(dataInput.value);
+    if (data.getDay() === 0) {
+        alert("Não atendemos aos domingos.");
+        dataInput.value = "";
+        return;
+    }
+
+    horarioSelect.innerHTML = '<option value="">Carregando...</option>';
+
+    const { data: agendados } = await supabase
+        .from("agendamentos")
+        .select("horario")
+        .eq("data", dataInput.value);
+
+    const ocupados = agendados.map(a => a.horario.slice(0,5));
+    const todos = gerarHorarios();
+
+    horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+
+    todos.forEach(h => {
+        if (!ocupados.includes(h)) {
+            const option = document.createElement("option");
+            option.value = h;
+            option.textContent = h;
+            horarioSelect.appendChild(option);
+        }
+    });
+});
 
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const nome = document.getElementById("nome").value;
-    const telefone = document.getElementById("telefone").value;
+    const nome = document.getElementById("nome").value.trim();
+    const telefone = document.getElementById("telefone").value.trim();
     const servico = document.getElementById("servico").value;
-    const data = document.getElementById("data").value;
-    const horario = document.getElementById("horario").value;
+    const data = dataInput.value;
+    const horario = horarioSelect.value;
 
-    // Verifica se horário já existe
-    const { data: existente } = await supabase
-        .from("agendamentos")
-        .select("*")
-        .eq("data", data)
-        .eq("horario", horario);
-
-    if (existente.length > 0) {
+    if (nome.split(" ").length < 2) {
         msg.style.color = "red";
-        msg.innerText = "⚠️ Esse horário já está reservado.";
+        msg.innerText = "Digite nome e sobrenome.";
         return;
     }
 
@@ -158,8 +177,9 @@ form.addEventListener("submit", async (e) => {
         msg.innerText = "Erro ao agendar.";
     } else {
         msg.style.color = "#d4af37";
-        msg.innerText = "✅ Horário agendado com sucesso!";
+        msg.innerText = "Agendamento confirmado com sucesso!";
         form.reset();
+        horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
     }
 });
 </script>
