@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin - Menezes Barbearia</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+background:#0d0d0d;
+font-family:Arial, sans-serif;
+color:white;
+margin:0;
+text-align:center;
+}
+
+h1{
+color:#d4af37;
+margin-top:20px;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:#1a1a1a;
+border:1px solid #d4af37;
+border-radius:15px;
+padding:15px;
+margin-bottom:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.info{
+text-align:left;
+}
+
+button{
+background:#d4af37;
+color:black;
+border:none;
+padding:8px 12px;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+margin:5px;
+}
+
+button:hover{
+opacity:0.8;
+}
+
+input{
+padding:12px;
+border-radius:8px;
+border:none;
+margin:10px;
+}
+
+.login{
+margin-top:100px;
+}
+
+.hidden{
+display:none;
+}
+
+.ganho{
+font-size:20px;
+margin:20px 0;
+color:#d4af37;
+}
+</style>
+</head>
+
+<body>
+
+<div id="login" class="login">
+<h1>Login Administrativo</h1>
+<input type="password" id="senha" placeholder="Digite a senha">
+<br>
+<button onclick="entrar()">Entrar</button>
+</div>
+
+<div id="painel" class="hidden">
+
+<h1>Painel Administrativo</h1>
+<div class="ganho" id="ganhosHoje"></div>
+
+<h2>Agendamentos de Hoje</h2>
+<div id="hoje"></div>
+
+<h2>Todos Agendamentos</h2>
+<div id="lista"></div>
+
+</div>
+
+<script>
+const SENHA_ADMIN = "Basspower.1415"; // 🔥 MUDE AQUI SUA SENHA
+
+const supabaseClient = supabase.createClient(
+"https://vmtizubcbzcscvrjnbkc.supabase.co",
+"SUA_ANON_KEY_AQUI"
+);
+
+function entrar(){
+let senha=document.getElementById("senha").value;
+if(senha===SENHA_ADMIN){
+document.getElementById("login").classList.add("hidden");
+document.getElementById("painel").classList.remove("hidden");
+carregar();
+}else{
+alert("Senha incorreta!");
+}
+}
+
+const valores = {
+"Corte":30,
+"Barba":20,
+"Sobrancelha":15,
+"Pezinho":15,
+"Corte + Sobrancelha":35,
+"Corte + Barba":40,
+"Corte + Barba + Sobrancelha":45,
+"Sidcut":20
+};
+
+async function carregar(){
+
+let {data} = await supabaseClient
+.from("agendamentos")
+.select("*")
+.order("dia",{ascending:true})
+.order("horario",{ascending:true});
+
+let hojeDiv=document.getElementById("hoje");
+let listaDiv=document.getElementById("lista");
+hojeDiv.innerHTML="";
+listaDiv.innerHTML="";
+
+let hojeData=new Date();
+let hojeFormat=`${String(hojeData.getDate()).padStart(2,"0")}/${String(hojeData.getMonth()+1).padStart(2,"0")}`;
+
+let totalHoje=0;
+
+data.forEach(a=>{
+
+let card=criarCard(a);
+
+if(a.dia===hojeFormat){
+hojeDiv.appendChild(card);
+totalHoje+=valores[a.servico] || 0;
+}
+
+listaDiv.appendChild(criarCard(a));
+});
+
+document.getElementById("ganhosHoje").innerText=
+`💰 Ganhos de hoje: R$ ${totalHoje}`;
+}
+
+function criarCard(a){
+let el=document.createElement("div");
+el.className="card";
+
+el.innerHTML=`
+<div class="info">
+<b>${a.nome}</b><br>
+📞 ${a.telefone}<br>
+💈 ${a.servico}<br>
+📅 ${a.dia} às ${a.horario}<br>
+${a.confirmado?"✅ Confirmado":"⏳ Pendente"}
+</div>
+<div>
+<button onclick="confirmar('${a.id}')">Confirmar</button>
+<button onclick="excluir('${a.id}')">Excluir</button>
+</div>
+`;
+return el;
+}
+
+async function excluir(id){
+if(confirm("Excluir agendamento?")){
+await supabaseClient.from("agendamentos").delete().eq("id",id);
+carregar();
+}
+}
+
+async function confirmar(id){
+await supabaseClient
+.from("agendamentos")
+.update({confirmado:true})
+.eq("id",id);
+
+carregar();
+}
+
+setInterval(()=>{
+if(!document.getElementById("painel").classList.contains("hidden")){
+carregar();
+}
+},10000);
+
+</script>
+
+</body>
+</html>
