@@ -3,262 +3,222 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Menezes Barbearia - Agendamento</title>
+<title>Agendamento - Barbearia</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
-body{
-    margin:0;
-    font-family:'Poppins', sans-serif;
-    background:#0d0d0d;
-    color:white;
-    padding:20px;
+body {
+  margin:0;
+  font-family: Arial, sans-serif;
+  background: #0f0f0f;
+  color: white;
 }
 
-.container{
-    max-width:500px;
-    margin:auto;
-    background:#111;
-    padding:25px;
-    border-radius:20px;
-    box-shadow:0 0 40px rgba(212,175,55,0.08);
-    border:1px solid rgba(212,175,55,0.3);
+.container {
+  max-width: 500px;
+  margin: auto;
+  padding: 20px;
 }
 
-h1{
-    font-family:'Playfair Display', serif;
-    color:#d4af37;
-    text-align:center;
-    margin-bottom:10px;
+h1 {
+  text-align: center;
+  color: #d4af37;
 }
 
-.subtitulo{
-    text-align:center;
-    color:#aaa;
-    margin-bottom:25px;
+.card {
+  background: #1a1a1a;
+  border: 1px solid #d4af37;
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  text-align: center;
+  transition: 0.3s;
 }
 
-.section-title{
-    margin-top:20px;
-    color:#d4af37;
-    font-weight:600;
-    font-size:15px;
+.card:hover {
+  background: #d4af37;
+  color: black;
 }
 
-.opcoes{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-top:10px;
+.selected {
+  background: #d4af37;
+  color: black;
 }
 
-.botao{
-    padding:12px;
-    border-radius:12px;
-    border:1px solid #d4af37;
-    background:#1a1a1a;
-    color:white;
-    cursor:pointer;
-    font-size:14px;
-    transition:0.3s;
-    text-align:center;
-    flex:1 1 45%;
+button {
+  width: 100%;
+  padding: 15px;
+  background: #d4af37;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 15px;
 }
 
-.botao:hover{
-    background:#d4af37;
-    color:black;
-}
-
-.botao.selecionado{
-    background:#d4af37;
-    color:black;
-    box-shadow:0 0 15px #d4af37;
-}
-
-button.confirmar{
-    width:100%;
-    margin-top:25px;
-    padding:14px;
-    border:none;
-    border-radius:30px;
-    background:#d4af37;
-    font-weight:bold;
-    cursor:pointer;
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: none;
 }
 </style>
 </head>
+
 <body>
-
 <div class="container">
-    <h1>MENEZES BARBEARIA</h1>
-    <div class="subtitulo">Agende seu horário com elegância</div>
 
-    <div class="section-title">Escolha o Serviço</div>
-    <div class="opcoes" id="servicos"></div>
+<h1>Agendamento</h1>
 
-    <div class="section-title">Selecione o Dia</div>
-    <div class="opcoes" id="datas"></div>
+<h3>Selecione o Serviço</h3>
+<div id="servicos"></div>
 
-    <div class="section-title">Escolha o Horário</div>
-    <div class="opcoes" id="horarios"></div>
+<h3>Selecione o Dia</h3>
+<div id="dias"></div>
 
-    <button class="confirmar" id="confirmar" disabled>CONFIRMAR AGENDAMENTO</button>
-    <div id="msg"></div>
+<h3>Selecione o Horário</h3>
+<div id="horarios"></div>
+
+<h3>Seus Dados</h3>
+<input type="text" id="nome" placeholder="Nome e Sobrenome" required>
+<input type="tel" id="telefone" placeholder="Telefone" required>
+
+<button onclick="agendar()">Confirmar Agendamento</button>
+
 </div>
 
 <script>
-const supabaseClient = supabase.createClient(
+
+const supabase = supabase.createClient(
   "https://vmtizubcbzcscvrjnbkc.supabase.co",
-  "SUA_ANON_KEY"
+  "SUA_ANON_KEY_AQUI"
 );
 
-const diasSemana = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+let servicoSelecionado = "";
+let diaSelecionado = "";
+let horarioSelecionado = "";
 
+// 🔥 SERVIÇOS NA ORDEM PEDIDA
 const servicosLista = [
-    {nome:"Corte", valor:"R$ 30"},
-    {nome:"Corte + Sobrancelha", valor:"R$ 35"},
-    {nome:"Corte + Barba", valor:"R$ 40"},
-    {nome:"Corte + Barba + Sobrancelha", valor:"R$ 45"},
-    {nome:"Sidcut", valor:"R$ 20"},
-    {nome:"Pezinho", valor:"R$ 15"}
+  { nome: "Corte", valor: "R$ 30" },
+  { nome: "Barba", valor: "R$ 20" },
+  { nome: "Sobrancelha", valor: "R$ 15" },
+  { nome: "Pezinho", valor: "R$ 15" },
+  { nome: "Corte + Sobrancelha", valor: "R$ 35" },
+  { nome: "Corte + Barba", valor: "R$ 40" },
+  { nome: "Corte + Barba + Sobrancelha", valor: "R$ 45" },
+  { nome: "Sidcut", valor: "R$ 20" }
 ];
 
-let servicoSelecionado=null;
-let dataSelecionada=null;
-let horarioSelecionado=null;
-
-const servicosDiv=document.getElementById("servicos");
-const datasDiv=document.getElementById("datas");
-const horariosDiv=document.getElementById("horarios");
-const confirmarBtn=document.getElementById("confirmar");
-const msg=document.getElementById("msg");
-
-// SERVIÇOS
-servicosLista.forEach(s=>{
-    const btn=document.createElement("div");
-    btn.className="botao";
-    btn.innerHTML=`${s.nome}<br><small>${s.valor}</small>`;
-    btn.onclick=()=>{
-        document.querySelectorAll("#servicos .botao").forEach(b=>b.classList.remove("selecionado"));
-        btn.classList.add("selecionado");
-        servicoSelecionado=s.nome;
-        validar();
+function carregarServicos() {
+  const container = document.getElementById("servicos");
+  container.innerHTML = "";
+  servicosLista.forEach(servico => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `<strong>${servico.nome}</strong><br>${servico.valor}`;
+    div.onclick = () => {
+      servicoSelecionado = servico.nome;
+      document.querySelectorAll("#servicos .card").forEach(c => c.classList.remove("selected"));
+      div.classList.add("selected");
     };
-    servicosDiv.appendChild(btn);
-});
-
-// DIAS SEM DOMINGO
-function gerarDias(){
-    const hoje=new Date();
-    datasDiv.innerHTML="";
-    let adicionados=0;
-    let i=0;
-
-    while(adicionados<7){
-        let data=new Date();
-        data.setDate(hoje.getDate()+i);
-
-        if(data.getDay()!=0){
-            const iso=data.toISOString().split("T")[0];
-            const btn=document.createElement("div");
-            btn.className="botao";
-            btn.innerHTML=`${data.getDate()}/${String(data.getMonth()+1).padStart(2,'0')}<br><small>${diasSemana[data.getDay()]}</small>`;
-            btn.onclick=()=>selecionarData(iso,btn);
-            datasDiv.appendChild(btn);
-            adicionados++;
-        }
-        i++;
-    }
+    container.appendChild(div);
+  });
 }
+
+function gerarDias() {
+  const container = document.getElementById("dias");
+  container.innerHTML = "";
+
+  for (let i = 0; i < 7; i++) {
+    let data = new Date();
+    data.setDate(data.getDate() + i);
+
+    if (data.getDay() === 0) continue; // 🔥 BLOQUEIA DOMINGO
+
+    let dia = data.toLocaleDateString("pt-BR");
+    let nomeDia = data.toLocaleDateString("pt-BR", { weekday: "long" });
+
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `<strong>${dia}</strong><br>${nomeDia}`;
+    div.onclick = () => {
+      diaSelecionado = dia;
+      document.querySelectorAll("#dias .card").forEach(c => c.classList.remove("selected"));
+      div.classList.add("selected");
+      gerarHorarios();
+    };
+    container.appendChild(div);
+  }
+}
+
+async function gerarHorarios() {
+  const container = document.getElementById("horarios");
+  container.innerHTML = "";
+
+  let horarios = [];
+
+  for (let h = 8; h <= 18; h++) {
+    horarios.push(`${h}:00`);
+    horarios.push(`${h}:30`);
+  }
+
+  const { data } = await supabase
+    .from("agendamentos")
+    .select("horario")
+    .eq("dia", diaSelecionado);
+
+  const ocupados = data ? data.map(item => item.horario) : [];
+
+  horarios.forEach(horario => {
+    if (ocupados.includes(horario)) return; // 🔥 NÃO MOSTRA HORÁRIO JÁ AGENDADO
+
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerText = horario;
+    div.onclick = () => {
+      horarioSelecionado = horario;
+      document.querySelectorAll("#horarios .card").forEach(c => c.classList.remove("selected"));
+      div.classList.add("selected");
+    };
+    container.appendChild(div);
+  });
+}
+
+async function agendar() {
+  const nome = document.getElementById("nome").value;
+  const telefone = document.getElementById("telefone").value;
+
+  if (!nome.includes(" ")) {
+    alert("Digite nome e sobrenome.");
+    return;
+  }
+
+  if (!servicoSelecionado || !diaSelecionado || !horarioSelecionado) {
+    alert("Preencha tudo.");
+    return;
+  }
+
+  await supabase.from("agendamentos").insert([
+    {
+      nome,
+      telefone,
+      servico: servicoSelecionado,
+      dia: diaSelecionado,
+      horario: horarioSelecionado
+    }
+  ]);
+
+  alert("Agendamento realizado com sucesso!");
+  location.reload();
+}
+
+carregarServicos();
 gerarDias();
 
-// HORÁRIOS 08:00 ÀS 15:30
-function gerarHorarios(){
-    let lista=[];
-    for(let h=8;h<=15;h++){
-        lista.push(`${String(h).padStart(2,'0')}:00`);
-        lista.push(`${String(h).padStart(2,'0')}:30`);
-    }
-    return lista;
-}
-
-async function selecionarData(data,btn){
-    document.querySelectorAll("#datas .botao").forEach(b=>b.classList.remove("selecionado"));
-    btn.classList.add("selecionado");
-    dataSelecionada=data;
-    horarioSelecionado=null;
-    confirmarBtn.disabled=true;
-    await carregarHorarios();
-}
-
-async function carregarHorarios(){
-    horariosDiv.innerHTML="Carregando...";
-    const {data}=await supabaseClient
-        .from("agendamentos")
-        .select("horario")
-        .eq("data",dataSelecionada);
-
-    const ocupados=data?data.map(h=>h.horario.slice(0,5)):[];
-    const todos=gerarHorarios();
-    horariosDiv.innerHTML="";
-
-    todos.forEach(h=>{
-        if(!ocupados.includes(h)){
-            const btn=document.createElement("div");
-            btn.className="botao";
-            btn.innerText=h;
-            btn.onclick=()=>{
-                document.querySelectorAll("#horarios .botao").forEach(b=>b.classList.remove("selecionado"));
-                btn.classList.add("selecionado");
-                horarioSelecionado=h;
-                validar();
-            };
-            horariosDiv.appendChild(btn);
-        }
-    });
-
-    if(horariosDiv.innerHTML===""){
-        horariosDiv.innerHTML="<span style='color:#888'>Sem horários disponíveis</span>";
-    }
-}
-
-function validar(){
-    confirmarBtn.disabled=!(servicoSelecionado && dataSelecionada && horarioSelecionado);
-}
-
-confirmarBtn.onclick=async()=>{
-    const nome=prompt("Digite seu nome e sobrenome:");
-    if(!nome||nome.trim().split(" ").length<2){
-        alert("Digite nome e sobrenome.");
-        return;
-    }
-
-    const telefone=prompt("Digite seu telefone:");
-    if(!telefone) return;
-
-    const {error}=await supabaseClient
-        .from("agendamentos")
-        .insert([{
-            nome,
-            telefone,
-            servico:servicoSelecionado,
-            data:dataSelecionada,
-            horario:horarioSelecionado
-        }]);
-
-    if(error){
-        msg.innerHTML="<span style='color:red'>Erro ao agendar</span>";
-    }else{
-        msg.innerHTML="<span style='color:#d4af37'>Agendamento confirmado!</span>";
-        gerarDias();
-        horariosDiv.innerHTML="";
-        confirmarBtn.disabled=true;
-    }
-};
 </script>
-
 </body>
 </html>
