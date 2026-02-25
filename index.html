@@ -165,17 +165,103 @@ function gerarDias() {
             adicionados++;
         }
         i++;
+ const supabaseClient = supabase.createClient(
+  "https://vmtizubcbzcscvrjnbkc.supabase.co",
+  "SUA_ANON_KEY"
+);
+
+const diasSemana = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+const datasDiv = document.getElementById("datas");
+const horariosDiv = document.getElementById("horarios");
+const confirmarBtn = document.getElementById("confirmarBtn");
+
+let dataSelecionada = null;
+let horarioSelecionado = null;
+
+function gerarDias(){
+    const hoje = new Date();
+    datasDiv.innerHTML = "";
+
+    let adicionados = 0;
+    let i = 0;
+
+    while(adicionados < 7){
+        let data = new Date();
+        data.setDate(hoje.getDate()+i);
+
+        if(data.getDay() !== 0){ // remove domingo
+            const iso = data.toISOString().split("T")[0];
+
+            const btn = document.createElement("div");
+            btn.className = "botao-opcao";
+            btn.innerHTML = `
+                ${data.getDate()}/${data.getMonth()+1}<br>
+                <small>${diasSemana[data.getDay()]}</small>
+            `;
+
+            btn.onclick = ()=> selecionarData(iso, btn);
+            datasDiv.appendChild(btn);
+            adicionados++;
+        }
+        i++;
     }
 }
 
-function gerarHorarios() {
-    let horarios = [];
-    for (let h = 8; h <= 15; h++) {
-        horarios.push(`${String(h).padStart(2,'0')}:00`);
-        if (h !== 15) horarios.push(`${String(h).padStart(2,'0')}:30`);
-    }
-    return horarios;
+async function selecionarData(data, elemento){
+    document.querySelectorAll(".datas-container .botao-opcao")
+        .forEach(b=>b.classList.remove("selecionado"));
+
+    elemento.classList.add("selecionado");
+    dataSelecionada = data;
+    horarioSelecionado = null;
+    confirmarBtn.disabled = true;
+
+    await carregarHorarios();
 }
+
+function gerarHorarios(){
+    let lista=[];
+    for(let h=8; h<=17; h++){
+        lista.push(`${String(h).padStart(2,'0')}:00`);
+        lista.push(`${String(h).padStart(2,'0')}:30`);
+    }
+    return lista;
+}
+
+async function carregarHorarios(){
+    horariosDiv.innerHTML = "Carregando...";
+
+    const { data } = await supabaseClient
+        .from("agendamentos")
+        .select("horario")
+        .eq("data", dataSelecionada);
+
+    const ocupados = data ? data.map(h=>h.horario.slice(0,5)) : [];
+    const todos = gerarHorarios();
+
+    horariosDiv.innerHTML = "";
+
+    todos.forEach(h=>{
+        if(!ocupados.includes(h)){
+            const btn = document.createElement("div");
+            btn.className = "botao-opcao";
+            btn.innerText = h;
+            btn.onclick = ()=> selecionarHorario(h, btn);
+            horariosDiv.appendChild(btn);
+        }
+    });
+}
+
+function selecionarHorario(horario, elemento){
+    document.querySelectorAll(".horarios-container .botao-opcao")
+        .forEach(b=>b.classList.remove("selecionado"));
+
+    elemento.classList.add("selecionado");
+    horarioSelecionado = horario;
+    confirmarBtn.disabled = false;
+}
+
+gerarDias();
 
 dataSelect.addEventListener("change", async () => {
     horarioSelect.innerHTML = '<option value="">Carregando...</option>';
