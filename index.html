@@ -88,10 +88,6 @@ button.confirmar{
     font-weight:bold;
     cursor:pointer;
 }
-
-button.confirmar:disabled{
-    opacity:0.5;
-}
 </style>
 </head>
 <body>
@@ -109,4 +105,160 @@ button.confirmar:disabled{
     <div class="section-title">Escolha o Horário</div>
     <div class="opcoes" id="horarios"></div>
 
-    <button class="confirmar
+    <button class="confirmar" id="confirmar" disabled>CONFIRMAR AGENDAMENTO</button>
+    <div id="msg"></div>
+</div>
+
+<script>
+const supabaseClient = supabase.createClient(
+  "https://vmtizubcbzcscvrjnbkc.supabase.co",
+  "SUA_ANON_KEY"
+);
+
+const diasSemana = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+const servicosLista = [
+    {nome:"Corte", valor:"R$ 30"},
+    {nome:"Corte + Sobrancelha", valor:"R$ 35"},
+    {nome:"Corte + Barba", valor:"R$ 40"},
+    {nome:"Corte + Barba + Sobrancelha", valor:"R$ 45"},
+    {nome:"Sidcut", valor:"R$ 20"},
+    {nome:"Pezinho", valor:"R$ 15"}
+];
+
+let servicoSelecionado=null;
+let dataSelecionada=null;
+let horarioSelecionado=null;
+
+const servicosDiv=document.getElementById("servicos");
+const datasDiv=document.getElementById("datas");
+const horariosDiv=document.getElementById("horarios");
+const confirmarBtn=document.getElementById("confirmar");
+const msg=document.getElementById("msg");
+
+// SERVIÇOS
+servicosLista.forEach(s=>{
+    const btn=document.createElement("div");
+    btn.className="botao";
+    btn.innerHTML=`${s.nome}<br><small>${s.valor}</small>`;
+    btn.onclick=()=>{
+        document.querySelectorAll("#servicos .botao").forEach(b=>b.classList.remove("selecionado"));
+        btn.classList.add("selecionado");
+        servicoSelecionado=s.nome;
+        validar();
+    };
+    servicosDiv.appendChild(btn);
+});
+
+// DIAS SEM DOMINGO
+function gerarDias(){
+    const hoje=new Date();
+    datasDiv.innerHTML="";
+    let adicionados=0;
+    let i=0;
+
+    while(adicionados<7){
+        let data=new Date();
+        data.setDate(hoje.getDate()+i);
+
+        if(data.getDay()!=0){
+            const iso=data.toISOString().split("T")[0];
+            const btn=document.createElement("div");
+            btn.className="botao";
+            btn.innerHTML=`${data.getDate()}/${String(data.getMonth()+1).padStart(2,'0')}<br><small>${diasSemana[data.getDay()]}</small>`;
+            btn.onclick=()=>selecionarData(iso,btn);
+            datasDiv.appendChild(btn);
+            adicionados++;
+        }
+        i++;
+    }
+}
+gerarDias();
+
+// HORÁRIOS 08:00 ÀS 15:30
+function gerarHorarios(){
+    let lista=[];
+    for(let h=8;h<=15;h++){
+        lista.push(`${String(h).padStart(2,'0')}:00`);
+        lista.push(`${String(h).padStart(2,'0')}:30`);
+    }
+    return lista;
+}
+
+async function selecionarData(data,btn){
+    document.querySelectorAll("#datas .botao").forEach(b=>b.classList.remove("selecionado"));
+    btn.classList.add("selecionado");
+    dataSelecionada=data;
+    horarioSelecionado=null;
+    confirmarBtn.disabled=true;
+    await carregarHorarios();
+}
+
+async function carregarHorarios(){
+    horariosDiv.innerHTML="Carregando...";
+    const {data}=await supabaseClient
+        .from("agendamentos")
+        .select("horario")
+        .eq("data",dataSelecionada);
+
+    const ocupados=data?data.map(h=>h.horario.slice(0,5)):[];
+    const todos=gerarHorarios();
+    horariosDiv.innerHTML="";
+
+    todos.forEach(h=>{
+        if(!ocupados.includes(h)){
+            const btn=document.createElement("div");
+            btn.className="botao";
+            btn.innerText=h;
+            btn.onclick=()=>{
+                document.querySelectorAll("#horarios .botao").forEach(b=>b.classList.remove("selecionado"));
+                btn.classList.add("selecionado");
+                horarioSelecionado=h;
+                validar();
+            };
+            horariosDiv.appendChild(btn);
+        }
+    });
+
+    if(horariosDiv.innerHTML===""){
+        horariosDiv.innerHTML="<span style='color:#888'>Sem horários disponíveis</span>";
+    }
+}
+
+function validar(){
+    confirmarBtn.disabled=!(servicoSelecionado && dataSelecionada && horarioSelecionado);
+}
+
+confirmarBtn.onclick=async()=>{
+    const nome=prompt("Digite seu nome e sobrenome:");
+    if(!nome||nome.trim().split(" ").length<2){
+        alert("Digite nome e sobrenome.");
+        return;
+    }
+
+    const telefone=prompt("Digite seu telefone:");
+    if(!telefone) return;
+
+    const {error}=await supabaseClient
+        .from("agendamentos")
+        .insert([{
+            nome,
+            telefone,
+            servico:servicoSelecionado,
+            data:dataSelecionada,
+            horario:horarioSelecionado
+        }]);
+
+    if(error){
+        msg.innerHTML="<span style='color:red'>Erro ao agendar</span>";
+    }else{
+        msg.innerHTML="<span style='color:#d4af37'>Agendamento confirmado!</span>";
+        gerarDias();
+        horariosDiv.innerHTML="";
+        confirmarBtn.disabled=true;
+    }
+};
+</script>
+
+</body>
+</html>
