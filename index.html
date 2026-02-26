@@ -7,234 +7,298 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
 body{
-background:#0d0d0d;
-font-family:Arial, sans-serif;
+font-family: 'Segoe UI', sans-serif;
+background:#0b0b0b;
 color:white;
-margin:0;
+}
+
+/* HERO */
+
+.hero{
+height:100vh;
+background:linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.9)),
+url('https://images.unsplash.com/photo-1512690459411-b9245aed614b');
+background-size:cover;
+background-position:center;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
 text-align:center;
-}
-
-h1{
-color:#d4af37;
-margin-top:20px;
-}
-
-.container{
-max-width:400px;
-margin:auto;
 padding:20px;
 }
 
-.card{
-border:1px solid #d4af37;
-border-radius:15px;
-padding:15px;
-margin-bottom:12px;
-cursor:pointer;
-transition:0.3s;
+.hero h1{
+font-size:50px;
+color:#d4af37;
+letter-spacing:3px;
 }
 
-.card:hover{
-background:#d4af37;
-color:black;
-}
-
-.selected{
-background:#d4af37;
-color:black;
-}
-
-button{
-background:#d4af37;
-color:black;
-border:none;
-padding:15px;
-width:100%;
-border-radius:10px;
-font-weight:bold;
+.hero p{
 margin-top:15px;
+font-size:18px;
+opacity:0.8;
+}
+
+.btn{
+margin-top:30px;
+padding:15px 30px;
+background:#d4af37;
+color:black;
+font-weight:bold;
+border:none;
+border-radius:8px;
 cursor:pointer;
 }
 
-input{
-width:100%;
-padding:12px;
-margin:10px 0;
-border-radius:8px;
-border:none;
+/* SERVIÇOS */
+
+.servicos{
+padding:60px 20px;
+text-align:center;
+}
+
+.servicos h2{
+color:#d4af37;
+margin-bottom:40px;
+font-size:32px;
 }
 
 .grid{
 display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:8px;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+max-width:1000px;
+margin:auto;
 }
 
-.small{
-font-size:12px;
+.card{
+background:#141414;
+padding:25px;
+border-radius:12px;
+border:1px solid #d4af37;
+}
+
+.card h3{
+color:#d4af37;
+margin-bottom:10px;
+}
+
+.card p{
 opacity:0.8;
+margin-bottom:10px;
+}
+
+/* AGENDAMENTO */
+
+.agendamento{
+padding:60px 20px;
+background:#111;
+text-align:center;
+}
+
+.agendamento h2{
+color:#d4af37;
+margin-bottom:30px;
+}
+
+form{
+max-width:500px;
+margin:auto;
+display:flex;
+flex-direction:column;
+gap:15px;
+}
+
+input,select{
+padding:12px;
+border-radius:8px;
+border:none;
+}
+
+.calendario{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+justify-content:center;
+margin-bottom:20px;
+}
+
+.dia{
+padding:10px 15px;
+background:#1a1a1a;
+border:1px solid #d4af37;
+border-radius:8px;
+cursor:pointer;
+}
+
+.dia.selected{
+background:#d4af37;
+color:black;
+}
+
+.horarios{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+justify-content:center;
+margin-bottom:20px;
+}
+
+.hora{
+padding:8px 12px;
+background:#1a1a1a;
+border:1px solid #d4af37;
+border-radius:6px;
+cursor:pointer;
+}
+
+.hora.selected{
+background:#d4af37;
+color:black;
+}
+
+footer{
+padding:20px;
+text-align:center;
+opacity:0.6;
 }
 </style>
 </head>
 
 <body>
 
-<h1>Menezes Barbearia</h1>
+<section class="hero">
+<h1>MENEZES BARBEARIA</h1>
+<p>Estilo, tradição e excelência em cada detalhe</p>
+<button class="btn" onclick="document.getElementById('agenda').scrollIntoView({behavior:'smooth'})">
+Agende Seu Horário
+</button>
+</section>
 
-<div class="container">
-
-<h3>Escolha o Serviço</h3>
-<div id="servicos"></div>
-
-<h3>Selecione o Dia</h3>
-<div id="dias"></div>
-
-<h3>Horários Disponíveis</h3>
-<div id="horarios" class="grid"></div>
-
-<h3>Seus Dados</h3>
-<input type="text" id="nome" placeholder="Nome e Sobrenome">
-<input type="text" id="telefone" placeholder="Telefone">
-
-<button onclick="agendar()">CONFIRMAR AGENDAMENTO</button>
-
+<section class="servicos">
+<h2>Nossos Serviços</h2>
+<div class="grid">
+<div class="card">
+<h3>Corte</h3>
+<p>Corte moderno ou tradicional</p>
+<p><b>R$30</b></p>
 </div>
+<div class="card">
+<h3>Barba</h3>
+<p>Modelagem completa com toalha quente</p>
+<p><b>R$20</b></p>
+</div>
+<div class="card">
+<h3>Corte + Barba</h3>
+<p>Pacote completo premium</p>
+<p><b>R$40</b></p>
+</div>
+<div class="card">
+<h3>Hidratação</h3>
+<p>Tratamento capilar intensivo</p>
+<p><b>R$25</b></p>
+</div>
+</div>
+</section>
+
+<section class="agendamento" id="agenda">
+<h2>Agendamento Online</h2>
+
+<div class="calendario" id="calendario"></div>
+<div class="horarios" id="horarios"></div>
+
+<form id="form">
+<input type="text" id="nome" placeholder="Nome e Sobrenome" required>
+<input type="tel" id="telefone" placeholder="Telefone" required>
+
+<select id="servico" required>
+<option value="">Escolha o Serviço</option>
+<option value="Corte">Corte</option>
+<option value="Barba">Barba</option>
+<option value="Corte + Barba">Corte + Barba</option>
+<option value="Hidratação">Hidratação</option>
+</select>
+
+<button class="btn" type="submit">Confirmar Agendamento</button>
+</form>
+</section>
+
+<footer>
+© 2026 Menezes Barbearia - Todos os direitos reservados
+</footer>
 
 <script>
 const supabaseClient = supabase.createClient(
-"https://vmtizubcbzcscvrjnbkc.supabase.co",
+"vmtizubcbzcscvrjnbkc",
 "sb_publishable_yTBSdMmjv1qIH8V9FViobw_DBIwtm_D"
 );
 
-const servicos = [
-{nome:"Corte",valor:"R$ 30"},
-{nome:"Barba",valor:"R$ 20"},
-{nome:"Sobrancelha",valor:"R$ 15"},
-{nome:"Pezinho",valor:"R$ 15"},
-{nome:"Corte + Sobrancelha",valor:"R$ 35"},
-{nome:"Corte + Barba",valor:"R$ 40"},
-{nome:"Corte + Barba + Sobrancelha",valor:"R$ 45"},
-{nome:"Sidcut",valor:"R$ 20"}
-];
+let diaSelecionado="";
+let horaSelecionada="";
 
-let servicoSelecionado=null;
-let diaSelecionado=null;
-let horarioSelecionado=null;
+const calendario=document.getElementById("calendario");
+const horariosDiv=document.getElementById("horarios");
 
-function renderServicos(){
-let div=document.getElementById("servicos");
-servicos.forEach(s=>{
-let el=document.createElement("div");
-el.className="card";
-el.innerHTML=`<b>${s.nome}</b><br><span class="small">${s.valor}</span>`;
-el.onclick=()=>{
-document.querySelectorAll("#servicos .card").forEach(c=>c.classList.remove("selected"));
-el.classList.add("selected");
-servicoSelecionado=s.nome;
+function gerarCalendario(){
+let hoje=new Date();
+
+for(let i=0;i<7;i++){
+let data=new Date();
+data.setDate(hoje.getDate()+i);
+
+if(data.getDay()===0) continue;
+
+let dia=document.createElement("div");
+dia.className="dia";
+dia.innerText=data.toLocaleDateString("pt-BR",{day:'2-digit',month:'2-digit'});
+dia.onclick=()=>{
+document.querySelectorAll(".dia").forEach(d=>d.classList.remove("selected"));
+dia.classList.add("selected");
+diaSelecionado=dia.innerText;
+gerarHorarios();
 };
-div.appendChild(el);
+calendario.appendChild(dia);
+}
+}
+
+function gerarHorarios(){
+horariosDiv.innerHTML="";
+let horas=["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
+
+horas.forEach(h=>{
+let btn=document.createElement("div");
+btn.className="hora";
+btn.innerText=h;
+btn.onclick=()=>{
+document.querySelectorAll(".hora").forEach(b=>b.classList.remove("selected"));
+btn.classList.add("selected");
+horaSelecionada=h;
+};
+horariosDiv.appendChild(btn);
 });
 }
 
-// 🔥 SEGUNDA A SÁBADO FIXO NA ORDEM
-function gerarDias(){
-let div = document.getElementById("dias");
-div.innerHTML = "";
+document.getElementById("form").addEventListener("submit",async(e)=>{
+e.preventDefault();
 
-let hoje = new Date();
-let diaAtual = hoje.getDay();
-let diasAteSegunda = (diaAtual === 0 ? 1 : 8 - diaAtual);
-let primeiraSegunda = new Date();
-primeiraSegunda.setDate(hoje.getDate() + diasAteSegunda - 7);
-
-const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-
-for(let i = 0; i < 6; i++){
-let data = new Date(primeiraSegunda);
-data.setDate(primeiraSegunda.getDate() + i);
-
-let dia = String(data.getDate()).padStart(2,'0');
-let mes = String(data.getMonth()+1).padStart(2,'0');
-let format = `${dia}/${mes}`;
-
-let el = document.createElement("div");
-el.className = "card";
-el.innerHTML = `${format}<br><span class="small">${diasSemana[i]}</span>`;
-
-el.onclick = () => {
-document.querySelectorAll("#dias .card").forEach(c=>c.classList.remove("selected"));
-el.classList.add("selected");
-diaSelecionado = format;
-gerarHorarios();
-};
-
-div.appendChild(el);
-}
-}
-
-async function gerarHorarios(){
-let div=document.getElementById("horarios");
-div.innerHTML="";
-horarioSelecionado=null;
-
-let {data}=await supabaseClient
-.from("agendamentos")
-.select("horario")
-.eq("dia",diaSelecionado);
-
-let ocupados=data?data.map(d=>d.horario):[];
-
-for(let h=8;h<=15;h++){
-for(let m of ["00","30"]){
-if(h==15 && m=="30") continue;
-let horario=`${String(h).padStart(2,"0")}:${m}`;
-
-if(!ocupados.includes(horario)){
-let el=document.createElement("div");
-el.className="card";
-el.innerHTML=horario;
-el.onclick=()=>{
-document.querySelectorAll("#horarios .card").forEach(c=>c.classList.remove("selected"));
-el.classList.add("selected");
-horarioSelecionado=horario;
-};
-div.appendChild(el);
-}
-}
-}
-}
-
-async function agendar(){
-let nome=document.getElementById("nome").value.trim();
-let telefone=document.getElementById("telefone").value.trim();
-
-// 🔥 validação forte nome + sobrenome
-if(!nome || nome.split(" ").filter(p=>p.length>1).length<2){
-alert("Digite nome e sobrenome corretamente.");
+if(!diaSelecionado || !horaSelecionada){
+alert("Selecione dia e horário");
 return;
 }
 
-if(!servicoSelecionado||!diaSelecionado||!horarioSelecionado){
-alert("Preencha todas as opções.");
+let nome=document.getElementById("nome").value.trim();
+if(nome.split(" ").length<2){
+alert("Digite nome e sobrenome");
 return;
 }
 
 await supabaseClient.from("agendamentos").insert([{
 nome,
-telefone,
-servico:servicoSelecionado,
+telefone:document.getElementById("telefone").value,
+servico:document.getElementById("servico").value,
 dia:diaSelecionado,
-horario:horarioSelecionado
-}]);
-
-alert("Agendamento realizado com sucesso!");
-location.reload();
-}
-
-renderServicos();
-gerarDias();
-</script>
-
-</body>
-</html>
+horario:horaSelecionada,
