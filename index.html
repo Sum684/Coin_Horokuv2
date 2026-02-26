@@ -9,33 +9,122 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-body{margin:0;background:#0a0a0a;font-family:'Montserrat';color:#fff}
+body{
+margin:0;
+background:#0a0a0a;
+font-family:'Montserrat',sans-serif;
+color:#fff;
+}
+
 .hero{
-height:70vh;
+height:80vh;
 background:linear-gradient(rgba(0,0,0,.8),rgba(0,0,0,.9)),
 url('https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1600&q=80');
 background-size:cover;
 background-position:center;
 display:flex;
+flex-direction:column;
 justify-content:center;
 align-items:center;
-flex-direction:column;
 text-align:center;
 }
-.hero h1{font-family:'Cinzel';font-size:50px;color:#d4af37}
-.container{max-width:1000px;margin:auto;padding:30px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px}
-.card{background:#111;border:1px solid #d4af37;padding:15px;border-radius:10px;cursor:pointer;text-align:center}
-.card:hover{background:#d4af37;color:#000}
-.selected{background:#d4af37;color:#000}
-input,button{width:100%;padding:12px;margin-top:10px;border-radius:8px;border:none}
-button{background:#d4af37;font-weight:bold;cursor:pointer}
+
+.hero h1{
+font-family:'Cinzel';
+font-size:52px;
+color:#d4af37;
+letter-spacing:5px;
+}
+
+.hero p{
+font-size:18px;
+margin-top:10px;
+color:#ccc;
+}
+
+.container{
+max-width:1100px;
+margin:auto;
+padding:40px 20px;
+}
+
+h2{
+font-family:'Cinzel';
+color:#d4af37;
+margin-top:50px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:15px;
+margin-top:15px;
+}
+
+.card{
+background:#111;
+border:1px solid #d4af37;
+padding:18px;
+border-radius:12px;
+text-align:center;
+cursor:pointer;
+transition:.3s;
+}
+
+.card:hover{
+background:#d4af37;
+color:#000;
+transform:scale(1.05);
+}
+
+.selected{
+background:#d4af37;
+color:#000;
+}
+
+input{
+width:100%;
+padding:14px;
+margin-top:12px;
+border-radius:8px;
+border:none;
+font-size:15px;
+}
+
+button{
+background:#d4af37;
+border:none;
+padding:14px;
+margin-top:15px;
+width:100%;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{opacity:.8}
+
+.adminPanel{
+background:#111;
+padding:20px;
+border-radius:10px;
+margin-top:20px;
+display:none;
+}
+
+.stat{
+background:#1a1a1a;
+padding:10px;
+margin:5px 0;
+border-radius:8px;
+}
 </style>
 </head>
 <body>
 
 <div class="hero">
 <h1>MENEZES BARBEARIA</h1>
+<p>Estilo. Presença. Respeito.</p>
 </div>
 
 <div class="container">
@@ -43,7 +132,7 @@ button{background:#d4af37;font-weight:bold;cursor:pointer}
 <h2>Serviços</h2>
 <div id="servicos" class="grid"></div>
 
-<h2>Datas</h2>
+<h2>Datas Disponíveis</h2>
 <div id="datas" class="grid"></div>
 
 <h2>Horários</h2>
@@ -52,7 +141,15 @@ button{background:#d4af37;font-weight:bold;cursor:pointer}
 <h2>Seus Dados</h2>
 <input id="nome" placeholder="Nome e Sobrenome">
 <input id="telefone" placeholder="Telefone">
-<button onclick="agendar()">Confirmar</button>
+<button onclick="agendar()">Confirmar Agendamento</button>
+
+<h2>Seu Histórico</h2>
+<div id="historico"></div>
+
+<h2>Área do Dono</h2>
+<input type="password" id="senhaAdmin" placeholder="Senha do administrador">
+<button onclick="abrirAdmin()">Entrar</button>
+<div id="admin" class="adminPanel"></div>
 
 </div>
 
@@ -62,15 +159,29 @@ const supabase = window.supabase.createClient(
 "sb_publishable_yTBSdMmjv1qIH8V9FViobw_DBIwtm_D"
 );
 
-const servicos=["Corte","Barba","Sobrancelha","Pezinho","Corte + Sobrancelha","Corte + Barba","Corte + Barba + Sobrancelha","Sidcut"];
-let servicoSel=null,dataSel=null,horaSel=null;
+const precos={
+"Corte":30,
+"Barba":10,
+"Sobrancelha":5,
+"Pezinho":5,
+"Corte + Sobrancelha":35,
+"Corte + Barba":40,
+"Corte + Barba + Sobrancelha":45,
+"Sidcut":25
+};
+
+const servicosLista=Object.keys(precos);
+
+let servicoSel=null;
+let dataSel=null;
+let horaSel=null;
 
 function gerarServicos(){
 const div=document.getElementById("servicos");
-servicos.forEach(s=>{
+servicosLista.forEach(s=>{
 let c=document.createElement("div");
 c.className="card";
-c.innerText=s;
+c.innerHTML=`${s}<br><strong>R$ ${precos[s]}</strong>`;
 c.onclick=()=>{
 document.querySelectorAll("#servicos .card").forEach(x=>x.classList.remove("selected"));
 c.classList.add("selected");
@@ -81,12 +192,15 @@ div.appendChild(c);
 }
 
 function gerarDatas(){
-let hoje=new Date();
 const div=document.getElementById("datas");
+div.innerHTML="";
+let hoje=new Date();
+
 for(let i=0;i<10;i++){
 let d=new Date();
 d.setDate(hoje.getDate()+i);
-if(d.getDay()>=1 && d.getDay()<=6){
+let dia=d.getDay();
+if(dia>=1 && dia<=6){
 let c=document.createElement("div");
 c.className="card";
 c.innerText=d.toLocaleDateString("pt-BR",{weekday:'long',day:'2-digit',month:'2-digit'});
@@ -107,7 +221,11 @@ div.innerHTML="";
 for(let h=8;h<=15;h++){
 for(let m of ["00","30"]){
 let hora=`${h}:${m}`;
-let {data}=await supabase.from("agendamentos").select("*").eq("data",dataSel).eq("hora",hora);
+let {data}=await supabase.from("agendamentos")
+.select("*")
+.eq("data",dataSel)
+.eq("hora",hora);
+
 if(data.length===0){
 let c=document.createElement("div");
 c.className="card";
@@ -125,10 +243,64 @@ div.appendChild(c);
 
 async function agendar(){
 let nome=document.getElementById("nome").value;
+let tel=document.getElementById("telefone").value;
+
 if(!nome.includes(" ")){alert("Digite nome e sobrenome");return;}
-await supabase.from("agendamentos").insert([{nome,servico:servicoSel,data:dataSel,hora:horaSel}]);
-alert("Agendado!");
+if(!servicoSel||!dataSel||!horaSel){alert("Complete tudo");return;}
+
+await supabase.from("agendamentos").insert([{
+nome:nome,
+telefone:tel,
+servico:servicoSel,
+data:dataSel,
+hora:horaSel,
+valor:precos[servicoSel]
+}]);
+
+alert("Agendamento confirmado!");
 gerarHorarios();
+carregarHistorico();
+}
+
+async function carregarHistorico(){
+let tel=document.getElementById("telefone").value;
+let {data}=await supabase.from("agendamentos")
+.select("*")
+.eq("telefone",tel);
+
+let div=document.getElementById("historico");
+div.innerHTML="";
+data.forEach(a=>{
+div.innerHTML+=`<div class="stat">${a.data} ${a.hora} - ${a.servico}
+<button onclick="cancelar(${a.id})">Cancelar</button></div>`;
+});
+}
+
+async function cancelar(id){
+await supabase.from("agendamentos").delete().eq("id",id);
+alert("Cancelado");
+gerarHorarios();
+carregarHistorico();
+}
+
+async function abrirAdmin(){
+if(document.getElementById("senhaAdmin").value!=="menezes123"){
+alert("Senha incorreta");
+return;
+}
+let {data}=await supabase.from("agendamentos").select("*");
+let div=document.getElementById("admin");
+div.style.display="block";
+div.innerHTML="<h3>Agendamentos</h3>";
+
+let total=0;
+
+data.forEach(a=>{
+total+=a.valor||0;
+div.innerHTML+=`<div class="stat">${a.data} ${a.hora} - ${a.nome} - ${a.servico} - R$ ${a.valor}</div>`;
+});
+
+div.innerHTML+=`<h3>Faturamento total: R$ ${total}</h3>`;
 }
 
 gerarServicos();
